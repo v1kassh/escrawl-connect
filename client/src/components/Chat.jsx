@@ -137,9 +137,18 @@ const Chat = () => {
             }).catch(err => console.error('Failed to refetch after reset', err));
         };
 
-        const handleChannelDeleted = (channelId) => {
+        const handleChannelDeleted = (channelId, channelName) => {
             setChannels(prev => prev.filter(c => c._id !== channelId));
             if (currentChannel?._id === channelId) {
+                setCurrentChannel(null);
+                setShowManageChannel(false); // Close manage modal if open
+
+                // Clear unread counts for this channel
+                setUnreadCounts(prev => {
+                    const newCounts = { ...prev };
+                    delete newCounts[channelName];
+                    return newCounts;
+                });
                 addToast('Current channel was deleted', 'error');
                 // Switch to default/first available or empty
                 axios.get(`${API_URL}/api/channels`, {
