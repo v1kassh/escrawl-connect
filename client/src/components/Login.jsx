@@ -245,6 +245,18 @@ const Login = () => {
                                     'Send OTP'
                                 )}
                             </motion.button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setStep('login');
+                                    setTempToken(null);
+                                    setTempUser(null);
+                                    setPassword('');
+                                }}
+                                className="w-full text-slate-500 hover:text-white text-sm"
+                            >
+                                Not you? Sign in as a different user
+                            </button>
                         </form>
                     )}
 
