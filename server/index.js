@@ -236,7 +236,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
 // Admin: Get All Users
 app.get('/api/users', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const users = await User.find({}, '-password'); // Exclude password field
         res.json(users);
@@ -247,7 +247,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
 
 // Admin: Create User
 app.post('/api/users', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const { username, password, role } = req.body;
         const existingUser = await User.findOne({ username });
@@ -265,7 +265,7 @@ const Message = require('./models/Message');
 
 // Admin: Delete User
 app.delete('/api/users/:id', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const userToDelete = await User.findById(req.params.id);
         if (!userToDelete) return res.status(404).json({ message: 'User not found' });
