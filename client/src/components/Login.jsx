@@ -30,13 +30,12 @@ const Login = () => {
             if (username && password) {
                 const res = await axios.post(`${API_URL}/api/auth/login`, { username, password });
 
-                if (res.data.user.isVerified === true) {
+                if (res.data.isVerified === true) {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('user', JSON.stringify(res.data.user));
                     navigate('/dashboard');
                 } else {
-                    // Start Verification Flow
-                    setTempToken(res.data.token);
+                    // Start Verification Flow - No token yet
                     setTempUser(res.data.user);
                     setStep('email');
                 }
@@ -81,10 +80,10 @@ const Login = () => {
         setError('');
         setIsLoading(true);
         try {
-            await axios.post(`${API_URL}/api/auth/verify-otp`, { username, email, otp });
+            const res = await axios.post(`${API_URL}/api/auth/verify-otp`, { username, email, otp });
 
             // Success! Save token and login
-            localStorage.setItem('token', tempToken);
+            localStorage.setItem('token', res.data.token);
             // Update user object with isVerified = true
             const updatedUser = { ...tempUser, isVerified: true, email };
             localStorage.setItem('user', JSON.stringify(updatedUser));
