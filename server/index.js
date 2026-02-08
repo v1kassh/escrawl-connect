@@ -192,15 +192,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.error('Email error (using console fallback):', error.message);
-                    // Do NOT return error to client, allow them to use console OTP if in dev
-                    return res.json({ message: 'OTP generated (check server console if email fails)' });
+                    console.error('Email error:', error);
+                    return res.status(500).json({ message: 'Failed to send email. Check server logs.' });
                 }
                 console.log('Email sent: ' + info.response);
                 res.json({ message: 'OTP sent to email' });
             });
         } else {
             console.log(`[DEV MODE] Email credentials missing. OTP: ${otp}`);
+            // In production, this is a critical configuration error
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(500).json({ message: 'Server Email Config Missing' });
+            }
             res.json({ message: 'OTP generated (check server console)' });
         }
 
