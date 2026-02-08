@@ -68,7 +68,13 @@ This guide covers how to deploy the **Client (Frontend)** to Netlify and the **S
 
 ## Troubleshooting
 
--   **CORS Issues:** If the frontend cannot talk to the backend, ensure your Backend `server/index.js` allows the Netlify domain in CORS settings (currently set to `*` which allows all).
+-   **MongoDB Errors:**
+    -   `MongooseServerSelectionError`: Check your Render `MONGO_URI` environment variable. Ensure MongoDB Atlas IP Whitelist is set to `0.0.0.0/0`.
+    -   `bad auth`: Your password in `MONGO_URI` is wrong.
+        -   If your password has special characters like `@`, you **MUST** URL encode them.
+        -   Example: if password is `Pa$$word!`, in the URI it should be `Pa%24%24word%21`.
+        -   Use [urlencoder.org](https://www.urlencoder.org/) to encode your password.
+-   **CORS Issues:** If theFrontend cannot talk to the Backend, ensure your Backend `server/index.js` allows the Netlify domain in CORS settings (currently set to `*` which allows all).
 -   **Socket Connection:** Ensure `VITE_API_URL` is correct. The frontend replaces `localhost:5000` with this value.
 -   **White Screen on Frontend:** Check the Netlify logs. Ensure `netlify.toml` is present in the `client` folder to handle redirects.
 
