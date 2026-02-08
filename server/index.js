@@ -261,23 +261,22 @@ app.post('/api/auth/verify-otp', async (req, res) => {
                 if (err) console.error('Error sending welcome email:', err);
                 else console.log('Welcome email sent:', info.response);
             });
-        });
         }
 
-// Generate Token for the newly verified user
-const payload = { userId: user._id, role: user.role, username: user.username };
-const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+        // Generate Token for the newly verified user
+        const payload = { userId: user._id, role: user.role, username: user.username };
+        const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
 
-res.json({
-    message: 'Email verified successfully',
-    isVerified: true,
-    token, // Send token here
-    user: { username: user.username, role: user.role, isVerified: true }
-});
+        res.json({
+            message: 'Email verified successfully',
+            isVerified: true,
+            token, // Send token here
+            user: { username: user.username, role: user.role, isVerified: true }
+        });
     } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-}
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 // Admin: Get All Users
