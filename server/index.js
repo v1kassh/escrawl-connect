@@ -184,7 +184,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
             // Attempt to send email with a timeout
             try {
                 await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error('Email timeout')), 8000); // 8s timeout
+                    const timeout = setTimeout(() => reject(new Error('Email timeout')), 15000); // Increased to 15s
 
                     transporter.sendMail(mailOptions, (error, info) => {
                         clearTimeout(timeout);
