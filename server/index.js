@@ -56,6 +56,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/escrawl_connect';
+console.log('Connecting to MongoDB:', MONGO_URI.includes('localhost') ? 'Using Local Fallback (Check ENV)' : 'Using Provided URI');
+
 mongoose.connect(MONGO_URI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
