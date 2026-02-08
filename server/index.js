@@ -387,9 +387,10 @@ const seedChannels = async () => {
 const seedAdmin = async () => {
     try {
         const User = require('./models/User'); // Ensure User model is loaded
-        const count = await User.countDocuments();
-        if (count === 0) {
-            console.log('🌱 Seeding initial Super Admin...');
+        const adminExists = await User.findOne({ username: 'vikash@escrawl' });
+
+        if (!adminExists) {
+            console.log('🌱 Seeding initial Super Admin (User missing)...');
             const admin = new User({
                 username: 'vikash@escrawl',
                 password: 'admin123_change_me', // Default password
@@ -399,6 +400,8 @@ const seedAdmin = async () => {
             });
             await admin.save();
             console.log('✅ Super Admin created: vikash@escrawl / admin123_change_me');
+        } else {
+            console.log('ℹ️ Super Admin already exists.');
         }
     } catch (err) {
         console.error('Error seeding admin:', err);
