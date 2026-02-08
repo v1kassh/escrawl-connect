@@ -173,7 +173,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
         console.log(`[DEBUG] OTP for ${username} (${email}): ${otp}`); // Always log for debugging
 
-        // Send Email
+        // Respond IMMEDIATELY to avoid timeouts on slow servers (Render)
+        res.json({ message: 'OTP sent to email' });
+
+        // Send Email Asynchronously (Fire and forget)
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -182,18 +185,16 @@ app.post('/api/auth/send-otp', async (req, res) => {
         };
 
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            // Do not await this, let it run in background
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     console.error('Email error (using console fallback):', error.message);
-                    // Do NOT return error to client, allow them to use console OTP if in dev
-                    return res.json({ message: 'OTP generated (check server console if email fails)' });
+                } else {
+                    console.log('Email sent: ' + info.response);
                 }
-                console.log('Email sent: ' + info.response);
-                res.json({ message: 'OTP sent to email' });
             });
         } else {
             console.log(`[DEV MODE] Email credentials missing. OTP: ${otp}`);
-            res.json({ message: 'OTP generated (check server console)' });
         }
 
     } catch (err) {
