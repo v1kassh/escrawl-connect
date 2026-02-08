@@ -1453,7 +1453,7 @@ const Chat = () => {
                                             onClick={(e) => handleDeleteChannel(e, currentChannel._id, currentChannel.name)}
                                             className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-500 hover:text-red-400 font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition"
                                         >
-                                            <Trash2 className="w-4 h-4" /> Delete Group
+                                            <Trash2 className="w-4 h-4" /> Delete Channel
                                         </button>
                                         <p className="text-xs text-red-400/70 text-center mt-2">Warning: This action cannot be undone.</p>
                                     </div>
