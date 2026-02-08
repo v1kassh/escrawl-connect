@@ -26,7 +26,13 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
-app.use(cors()); // CORS must be first
+// Configure CORS to allow Netlify frontend
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://escrawl-connect.netlify.app', '*'], // Allow local and production
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 app.options('*', cors()); // Enable pre-flight for all routes
 
 // Set Security Headers
