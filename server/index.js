@@ -105,8 +105,8 @@ app.post('/api/auth/login', async (req, res) => {
 
         res.json({ token, user: { username: user.username, role: user.role, isVerified } });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Login Error:', err);
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
 
