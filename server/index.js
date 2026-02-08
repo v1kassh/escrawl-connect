@@ -139,8 +139,8 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465, // Use 465 for secure, or 587 for TLS
-    secure: true, // true for 465, false for other ports
+    port: 587, // Try 587 (TLS) instead of 465
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         // Remove spaces from App Password if present (common copy-paste issue)
