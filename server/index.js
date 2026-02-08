@@ -100,12 +100,19 @@ app.get('/api/health', (req, res) => {
 // Auth: Login
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
+    console.log(`[Login Attempt] Username: ${username}`);
     try {
         const user = await User.findOne({ username });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!user) {
+            console.log('[Login Fail] User not found');
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+        if (!isMatch) {
+            console.log('[Login Fail] Password incorrect');
+            return res.status(400).json({ message: 'Invalid credentials' });
+        }
 
         // Bypass verification for Super Admin
         let isVerified = user.isVerified;
