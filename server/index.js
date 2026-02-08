@@ -86,6 +86,17 @@ const authenticateToken = (req, res, next) => {
 
 // Routes
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    const dbStatus = mongoose.connection.readyState;
+    const statusMap = { 0: 'Disconnected', 1: 'Connected', 2: 'Connecting', 3: 'Disconnecting' };
+    res.json({
+        server: 'Running',
+        database: statusMap[dbStatus] || 'Unknown',
+        env_mongo_set: !!process.env.MONGO_URI // true/false check
+    });
+});
+
 // Auth: Login
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
