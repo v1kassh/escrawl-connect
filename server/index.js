@@ -148,6 +148,10 @@ const transporter = nodemailer.createTransport({
     },
     // Force IPv4 to avoid Render IPv6 issues
     family: 4,
+    // Add specific timeouts
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     // Enable debug output
     debug: true,
     logger: true
@@ -189,7 +193,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
             // Attempt to send email with a timeout
             try {
                 await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error('Email timeout')), 15000); // Increased to 15s
+                    const timeout = setTimeout(() => reject(new Error('Email timeout')), 30000); // Increased to 30s
 
                     transporter.sendMail(mailOptions, (error, info) => {
                         clearTimeout(timeout);
