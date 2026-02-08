@@ -27,11 +27,11 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
 // Configure CORS to allow Netlify frontend
+// Configure CORS for Render/Netlify
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://escrawl-connect.netlify.app', '*'], // Allow local and production
+    origin: '*', // Temporarily allow all for debugging
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors()); // Enable pre-flight for all routes
 
