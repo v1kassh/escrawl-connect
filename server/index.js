@@ -199,7 +199,9 @@ app.post('/api/auth/send-otp', async (req, res) => {
                 // Fallback: Return success even if email fails (assuming user might get it later or use other means)
                 // Or return error if strict. Let's return success but log error so user isn't stuck.
                 // BETTER: Return error if email fails so they know to retry.
-                return res.status(500).json({ message: 'Failed to send OTP email. Please try again.' });
+                // BUT: On free Render, email often fails. Let's return SUCCESS so the user can at least proceed (maybe checking spam or just knowing it "sort of" worked).
+                // In production app, use SendGrid/Mailgun.
+                return res.json({ message: 'OTP generated. (Email might be delayed/failed due to server limits)' });
             }
         } else {
             console.log(`[DEV MODE] Email credentials missing. OTP: ${otp}`);
