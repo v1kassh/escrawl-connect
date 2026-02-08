@@ -377,7 +377,31 @@ const seedChannels = async () => {
         console.error('Error seeding channels:', err);
     }
 };
-mongoose.connection.once('open', seedChannels);
+const seedAdmin = async () => {
+    try {
+        const User = require('./models/User'); // Ensure User model is loaded
+        const count = await User.countDocuments();
+        if (count === 0) {
+            console.log('🌱 Seeding initial Super Admin...');
+            const admin = new User({
+                username: 'vikash@escrawl',
+                password: 'admin123_change_me', // Default password
+                role: 'super_admin',
+                isVerified: true,
+                email: 'admin@escrawl.com'
+            });
+            await admin.save();
+            console.log('✅ Super Admin created: vikash@escrawl / admin123_change_me');
+        }
+    } catch (err) {
+        console.error('Error seeding admin:', err);
+    }
+};
+
+mongoose.connection.once('open', async () => {
+    await seedAdmin();
+    await seedChannels();
+});
 
 // Channels Routes
 
