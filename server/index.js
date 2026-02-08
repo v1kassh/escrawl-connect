@@ -135,14 +135,19 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 });
 
 // Email Transporter Setup
+// Email Transporter Setup
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465, // Use 465 for secure, or 587 for TLS
+    secure: true, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER,
         // Remove spaces from App Password if present (common copy-paste issue)
         pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : ''
     },
+    // Force IPv4 to avoid Render IPv6 issues
+    family: 4,
     // Enable debug output
     debug: true,
     logger: true
