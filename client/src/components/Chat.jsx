@@ -55,6 +55,7 @@ const Chat = () => {
         type: 'danger',
         onConfirm: null
     });
+    const [loggingOut, setLoggingOut] = useState(false);
 
     const addToast = (message, type = 'info') => {
         const id = Date.now();
@@ -420,9 +421,13 @@ const Chat = () => {
             type: 'warning',
             confirmText: 'Sign Out',
             onConfirm: () => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                navigate('/login');
+                setLoggingOut(true);
+                // Simulate a small delay for better UX or if we had an API call
+                setTimeout(() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    navigate('/login');
+                }, 800);
             }
         });
     };
@@ -1525,6 +1530,21 @@ const Chat = () => {
                     ))}
                 </AnimatePresence>
             </div >
+
+            {/* Logout Loading Overlay */}
+            <AnimatePresence>
+                {loggingOut && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[300] bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center text-white"
+                    >
+                        <Loader className="w-12 h-12 text-teal-500 animate-spin mb-4" />
+                        <h2 className="text-xl font-bold">Signing Out...</h2>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 };

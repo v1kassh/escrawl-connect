@@ -67,7 +67,7 @@ const AdminPanel = () => {
     };
 
     const filteredUsers = users.filter(user =>
-        user.username?.toLowerCase().includes(searchTerm.toLowerCase())
+        user.username.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

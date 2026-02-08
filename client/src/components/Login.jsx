@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, User, Shield, Eye, EyeOff, Mail, Key } from 'lucide-react';
+import { Lock, User, Shield, Eye, EyeOff, Mail, Key, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
@@ -18,12 +18,14 @@ const Login = () => {
     const [error, setError] = useState('');
     const [tempToken, setTempToken] = useState(null);
     const [tempUser, setTempUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
         try {
             if (username && password) {
                 const res = await axios.post(`${API_URL}/api/auth/login`, { username, password });
@@ -47,12 +49,15 @@ const Login = () => {
             } else {
                 setError(err.response.data.message || 'Invalid username or password');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
         try {
             if (!email.includes('@')) {
                 setError('Please enter a valid email address');
@@ -66,12 +71,15 @@ const Login = () => {
             } else {
                 setError(err.response.data.message || 'Error sending OTP');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
         try {
             await axios.post(`${API_URL}/api/auth/verify-otp`, { username, email, otp });
 
@@ -87,6 +95,8 @@ const Login = () => {
             } else {
                 setError(err.response.data.message || 'Invalid OTP');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -188,9 +198,17 @@ const Login = () => {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
-                                className="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300"
+                                className={`w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300 flex items-center justify-center ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
+                                disabled={isLoading}
                             >
-                                Sign In
+                                {isLoading ? (
+                                    <>
+                                        <Loader className="w-5 h-5 animate-spin mr-2" />
+                                        Signing In...
+                                    </>
+                                ) : (
+                                    'Sign In'
+                                )}
                             </motion.button>
                         </form>
                     )}
@@ -215,9 +233,17 @@ const Login = () => {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
-                                className="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300"
+                                className={`w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300 flex items-center justify-center ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
+                                disabled={isLoading}
                             >
-                                Send OTP
+                                {isLoading ? (
+                                    <>
+                                        <Loader className="w-5 h-5 animate-spin mr-2" />
+                                        Sending OTP...
+                                    </>
+                                ) : (
+                                    'Send OTP'
+                                )}
                             </motion.button>
                         </form>
                     )}
@@ -243,9 +269,17 @@ const Login = () => {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 type="submit"
-                                className="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300"
+                                className={`w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 rounded-xl font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-300 flex items-center justify-center ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
+                                disabled={isLoading}
                             >
-                                Verify & Sign In
+                                {isLoading ? (
+                                    <>
+                                        <Loader className="w-5 h-5 animate-spin mr-2" />
+                                        Verifying...
+                                    </>
+                                ) : (
+                                    'Verify & Sign In'
+                                )}
                             </motion.button>
                             <button
                                 type="button"

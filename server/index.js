@@ -56,12 +56,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/escrawl_connect';
-console.log('Connecting to MongoDB:', MONGO_URI.includes('localhost') ? 'Using Local Fallback (Check ENV)' : 'Using Provided URI');
-
-mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-})
+mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
@@ -86,33 +81,15 @@ const authenticateToken = (req, res, next) => {
 
 // Routes
 
-// Health Check
-app.get('/api/health', (req, res) => {
-    const dbStatus = mongoose.connection.readyState;
-    const statusMap = { 0: 'Disconnected', 1: 'Connected', 2: 'Connecting', 3: 'Disconnecting' };
-    res.json({
-        server: 'Running',
-        database: statusMap[dbStatus] || 'Unknown',
-        env_mongo_set: !!process.env.MONGO_URI // true/false check
-    });
-});
-
 // Auth: Login
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
-    console.log(`[Login Attempt] Username: ${username}`);
     try {
         const user = await User.findOne({ username });
-        if (!user) {
-            console.log('[Login Fail] User not found');
-            return res.status(400).json({ message: 'Invalid credentials' });
-        }
+        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            console.log('[Login Fail] Password incorrect');
-            return res.status(400).json({ message: 'Invalid credentials' });
-        }
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
         // Bypass verification for Super Admin
         let isVerified = user.isVerified;
@@ -125,8 +102,8 @@ app.post('/api/auth/login', async (req, res) => {
 
         res.json({ token, user: { username: user.username, role: user.role, isVerified } });
     } catch (err) {
-        console.error('Login Error:', err);
-        res.status(500).json({ message: 'Server error', error: err.message });
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -192,18 +169,15 @@ app.post('/api/auth/send-otp', async (req, res) => {
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.error('Email error:', error);
-                    return res.status(500).json({ message: 'Failed to send email. Check server logs.' });
+                    console.error('Email error (using console fallback):', error.message);
+                    // Do NOT return error to client, allow them to use console OTP if in dev
+                    return res.json({ message: 'OTP generated (check server console if email fails)' });
                 }
                 console.log('Email sent: ' + info.response);
                 res.json({ message: 'OTP sent to email' });
             });
         } else {
             console.log(`[DEV MODE] Email credentials missing. OTP: ${otp}`);
-            // In production, this is a critical configuration error
-            if (process.env.NODE_ENV === 'production') {
-                return res.status(500).json({ message: 'Server Email Config Missing' });
-            }
             res.json({ message: 'OTP generated (check server console)' });
         }
 
@@ -230,6 +204,56 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         user.otpExpires = undefined;
         await user.save();
 
+        // Send Welcome Email
+        const welcomeMailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Welcome to Escrawl Connect! 🚀',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+                    <div style="background: linear-gradient(135deg, #0f766e 0%, #047857 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Escrawl Connect</h1>
+                        <p style="color: #e0f2f1; margin-top: 10px;">Your secure workspace is ready</p>
+                    </div>
+                    
+                    <div style="background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
+                        <p>Hi <strong>${username}</strong>,</p>
+                        <p>Congratulations! You've successfully verified your account. You now have full access to Escrawl Connect.</p>
+                        
+                        <h3 style="color: #0d9488; margin-top: 25px;">✨ Key Features Available Now:</h3>
+                        <ul style="line-height: 1.6; color: #475569;">
+                            <li><strong>Real-time Chat:</strong> Instant messaging with zero latency.</li>
+                            <li><strong>Secure Groups:</strong> Join public channels or private groups.</li>
+                            <li><strong>File Sharing:</strong> Share images, documents, and media securely.</li>
+                            <li><strong>Video Calls:</strong> 1-on-1 encrypted video meetings (WebRTC).</li>
+                        </ul>
+
+                        <div style="background: #f0fdfa; border-left: 4px solid #0d9488; padding: 15px; margin: 25px 0;">
+                            <p style="margin: 0; color: #115e59; font-size: 14px;">
+                                <strong>🚀 Coming Soon:</strong> We are continuously enhancing Escrawl! Stay tuned for E2E encryption for groups, screen sharing, and AI-powered summaries.
+                            </p>
+                        </div>
+                        
+                        <p style="text-align: center; margin-top: 30px;">
+                            <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard" style="background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Launch Dashboard</a>
+                        </p>
+                        
+                        <p style="margin-top: 30px; font-size: 12px; color: #94a3b8; text-align: center;">
+                            This is an automated message. Please do not reply directly to this email.<br>
+                            &copy; ${new Date().getFullYear()} Escrawl Connect. All rights reserved.
+                        </p>
+                    </div>
+                </div>
+            `
+        };
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            transporter.sendMail(welcomeMailOptions, (err, info) => {
+                if (err) console.error('Error sending welcome email:', err);
+                else console.log('Welcome email sent:', info.response);
+            });
+        }
+
         res.json({ message: 'Email verified successfully', isVerified: true });
     } catch (err) {
         console.error(err);
@@ -239,7 +263,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 
 // Admin: Get All Users
 app.get('/api/users', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const users = await User.find({}, '-password'); // Exclude password field
         res.json(users);
@@ -250,7 +274,7 @@ app.get('/api/users', authenticateToken, async (req, res) => {
 
 // Admin: Create User
 app.post('/api/users', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const { username, password, role } = req.body;
         const existingUser = await User.findOne({ username });
@@ -268,7 +292,7 @@ const Message = require('./models/Message');
 
 // Admin: Delete User
 app.delete('/api/users/:id', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
     try {
         const userToDelete = await User.findById(req.params.id);
         if (!userToDelete) return res.status(404).json({ message: 'User not found' });
@@ -387,34 +411,7 @@ const seedChannels = async () => {
         console.error('Error seeding channels:', err);
     }
 };
-const seedAdmin = async () => {
-    try {
-        const User = require('./models/User'); // Ensure User model is loaded
-        const adminExists = await User.findOne({ username: 'vikash@escrawl' });
-
-        if (!adminExists) {
-            console.log('🌱 Seeding initial Super Admin (User missing)...');
-            const admin = new User({
-                username: 'vikash@escrawl',
-                password: 'admin123_change_me', // Default password
-                role: 'super_admin',
-                isVerified: true,
-                email: 'admin@escrawl.com'
-            });
-            await admin.save();
-            console.log('✅ Super Admin created: vikash@escrawl / admin123_change_me');
-        } else {
-            console.log('ℹ️ Super Admin already exists.');
-        }
-    } catch (err) {
-        console.error('Error seeding admin:', err);
-    }
-};
-
-mongoose.connection.once('open', async () => {
-    await seedAdmin();
-    await seedChannels();
-});
+mongoose.connection.once('open', seedChannels);
 
 // Channels Routes
 
