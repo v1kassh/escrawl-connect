@@ -173,10 +173,6 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
         console.log(`[DEBUG] OTP for ${username} (${email}): ${otp}`); // Always log for debugging
 
-        // Respond IMMEDIATELY to avoid timeouts on slow servers (Render)
-        res.json({ message: 'OTP sent to email' });
-
-        // Send Email Asynchronously (Fire and forget)
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -185,16 +181,29 @@ app.post('/api/auth/send-otp', async (req, res) => {
         };
 
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            // Do not await this, let it run in background
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Email error (using console fallback):', error.message);
-                } else {
-                    console.log('Email sent: ' + info.response);
-                }
-            });
+            // Attempt to send email with a timeout
+            try {
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('Email timeout')), 8000); // 8s timeout
+
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        clearTimeout(timeout);
+                        if (error) reject(error);
+                        else resolve(info);
+                    });
+                });
+                console.log('Email sent successfully');
+                return res.json({ message: 'OTP sent to email' });
+            } catch (error) {
+                console.error('Email error:', error.message);
+                // Fallback: Return success even if email fails (assuming user might get it later or use other means)
+                // Or return error if strict. Let's return success but log error so user isn't stuck.
+                // BETTER: Return error if email fails so they know to retry.
+                return res.status(500).json({ message: 'Failed to send OTP email. Please try again.' });
+            }
         } else {
             console.log(`[DEV MODE] Email credentials missing. OTP: ${otp}`);
+            return res.json({ message: 'OTP generated (check server console)' });
         }
 
     } catch (err) {
