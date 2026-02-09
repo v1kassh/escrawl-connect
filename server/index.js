@@ -103,6 +103,8 @@ app.post('/api/auth/login', async (req, res) => {
             isVerified = true;
         }
 
+        console.log(`[LOGIN DEBUG] User: ${user.username}, DB isVerified: ${user.isVerified}, Effective isVerified: ${isVerified}`);
+
         const payload = { userId: user._id, role: user.role, username: user.username };
 
         // If not verified, DO NOT send token. Force verification.
