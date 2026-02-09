@@ -30,6 +30,8 @@ const Login = () => {
             if (username && password) {
                 const res = await axios.post(`${API_URL}/api/auth/login`, { username, password });
 
+                // If verified, login directly.
+                // If NOT verified, start OTP flow.
                 if (res.data.isVerified === true) {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('user', JSON.stringify(res.data.user));
