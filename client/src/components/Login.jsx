@@ -35,6 +35,7 @@ const Login = () => {
                 if (res.data.isVerified === true) {
                     localStorage.setItem('token', res.data.token);
                     localStorage.setItem('user', JSON.stringify(res.data.user));
+                    console.log('Login successful', res.data.user);
                     navigate('/dashboard');
                 } else {
                     // Start Verification Flow - No token yet
